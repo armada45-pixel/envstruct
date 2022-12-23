@@ -11,13 +11,13 @@ This Project use some code from
 
 # installation
 ```shell
-go get github.com/armada45-pixel/dotenv
+go get github.com/armada45-pixel/envstruct
 ```
 
 # How to use
 ```go
 import (
-  "github.com/armada45-pixel/dotenv"
+  "github.com/armada45-pixel/envstruct"
 )
 
 type env struct {
@@ -69,5 +69,9 @@ All value from your env file in here now.
 
 # Change Log
 
-Version 1.0.0
+1.0.0
 * Read File .env and parse value and put into variable(struct only and must pointer)
+
+1.0.1
+* Change name of repository to "envstruct"
+* Change Mark down installation address
