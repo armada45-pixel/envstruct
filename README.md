@@ -75,3 +75,8 @@ All value from your env file in here now.
 1.0.1
 * Change name of repository to "envstruct"
 * Change Mark down installation address
+
+1.0.2
+* Change function name ( export )
+* Remove main function
+* Change module name to envstruct
