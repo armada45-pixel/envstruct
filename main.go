@@ -3,7 +3,6 @@ package envstruct
 
 import (
 	"errors"
-	"fmt"
 	"os"
 	"reflect"
 )
@@ -39,7 +38,7 @@ type Options struct {
 
 func Setup(optA ...Options) (err []error) {
 	err = []error{}
-	opt := CheckOptions(optA)
+	opt := checkOptions(optA)
 
 	fileName := opt.FileName
 	if !opt.IgnoreFile {
@@ -51,10 +50,10 @@ func Setup(optA ...Options) (err []error) {
 			var varProp = typeVarProp{}
 			var errCheckVar []error
 			if opt.VarPtr != nil {
-				varProp, errCheckVar = PrepareVar(opt.VarPtr)
+				varProp, errCheckVar = prepareVar(opt.VarPtr)
 				err = append(err, errCheckVar...)
 			}
-			newVarProp, errParser := ParserFile(file, ParserOption{
+			newVarProp, errParser := parserFile(file, parserOption{
 				varProp: varProp,
 			})
 			err = append(err, errParser...)
@@ -112,30 +111,4 @@ type varFieldProp struct {
 	didRead      bool
 	readValue    any
 	refTypeField reflect.StructField
-}
-
-type env struct {
-	Port uint16 `env:"PORT" os:"PORT" required:"true" default:"1234"`
-	Mode string `env:"MODE" os:"MODE" required:"false" default:"testDefalut"`
-}
-
-func main() {
-
-	cfg := env{
-		// Port: 8080,
-		// Mode: "Development",
-	}
-
-	opt := Options{
-		VarPtr:   &cfg,
-		FileName: ".env.local",
-	}
-
-	if err := Setup(opt); len(err) != 0 {
-		fmt.Println(err)
-	}
-
-	fmt.Println(cfg)
-
-	return
 }
