@@ -39,7 +39,7 @@ type Options struct {
 
 func Setup(optA ...Options) (err []error) {
 	err = []error{}
-	opt := CheckOptions(optA)
+	opt := checkOptions(optA)
 
 	fileName := opt.FileName
 	if !opt.IgnoreFile {
@@ -51,10 +51,10 @@ func Setup(optA ...Options) (err []error) {
 			var varProp = typeVarProp{}
 			var errCheckVar []error
 			if opt.VarPtr != nil {
-				varProp, errCheckVar = PrepareVar(opt.VarPtr)
+				varProp, errCheckVar = prepareVar(opt.VarPtr)
 				err = append(err, errCheckVar...)
 			}
-			newVarProp, errParser := ParserFile(file, ParserOption{
+			newVarProp, errParser := parserFile(file, parserOption{
 				varProp: varProp,
 			})
 			err = append(err, errParser...)

@@ -6,7 +6,7 @@ import (
 	"strconv"
 )
 
-func CheckOptions(optArray []Options) Options {
+func checkOptions(optArray []Options) Options {
 	// Default Option
 	defOpt := Options{
 		FileName: ".env",
@@ -29,7 +29,7 @@ func CheckOptions(optArray []Options) Options {
 	return opt
 }
 
-func PrepareVar(VarPtr interface{}) (ls typeVarProp, err []error) {
+func prepareVar(VarPtr interface{}) (ls typeVarProp, err []error) {
 	err = []error{}
 	ls = typeVarProp{
 		check:   false,

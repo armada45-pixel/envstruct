@@ -5,6 +5,7 @@
 *.so
 *.dylib
 
+.env
 *.local
 .air.toml
 tmp

@@ -8,19 +8,19 @@ import (
 	"strings"
 )
 
-type ParserOption struct {
+type parserOption struct {
 	varProp typeVarProp
 }
 
-func ParserFile(file io.Reader, opts ...ParserOption) (varProp typeVarProp, err []error) {
+func parserFile(file io.Reader, opts ...parserOption) (varProp typeVarProp, err []error) {
 	varProp = opts[0].varProp
 	var envMap = make(map[string]string)
 	err = []error{}
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
 		text := scanner.Text()
-		if !FileCheckIgnoredLine(text) {
-			key, value, errLine := FileParseLine(text, envMap)
+		if !fileCheckIgnoredLine(text) {
+			key, value, errLine := fileParseLine(text, envMap)
 
 			if errLine != nil {
 				err = append(err, errLine)
@@ -60,11 +60,11 @@ func ParserFile(file io.Reader, opts ...ParserOption) (varProp typeVarProp, err 
 	}
 	return
 }
-func FileCheckIgnoredLine(line string) bool {
+func fileCheckIgnoredLine(line string) bool {
 	trimmedLine := strings.TrimSpace(line)
 	return len(trimmedLine) == 0 || strings.HasPrefix(trimmedLine, "#")
 }
-func FileParseLine(line string, envMap map[string]string) (key string, value string, err error) {
+func fileParseLine(line string, envMap map[string]string) (key string, value string, err error) {
 	if len(line) == 0 {
 		err = errors.New("zero length string")
 		return
