@@ -80,3 +80,6 @@ All value from your env file in here now.
 * Change function name ( export )
 * Remove main function
 * Change module name to envstruct
+
+1.0.3
+* Change set function
