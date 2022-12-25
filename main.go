@@ -86,7 +86,7 @@ func set(newVarProp typeVarProp) (err []error) {
 		if !newProp.didRead {
 			newValue = newProp.defaultValue
 		}
-		if reflect.ValueOf(newValue).IsZero() {
+		if !reflect.ValueOf(newValue).IsZero() {
 			fieldee.Set(reflect.ValueOf(newValue))
 		} else if newProp.required {
 			err = append(err, errors.New("Field "+refField.Type().Name()+" Required is True, But can't get any value."))
