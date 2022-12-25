@@ -5,6 +5,7 @@
 *.so
 *.dylib
 
+main.go
 .env
 *.local
 .air.toml
