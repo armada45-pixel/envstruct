@@ -8,11 +8,11 @@ import (
 	"strings"
 )
 
-type parserOption struct {
+type parserFileOption struct {
 	varProp typeVarProp
 }
 
-func parserFile(file io.Reader, opts ...parserOption) (varProp typeVarProp, err []error) {
+func parserFile(file io.Reader, opts ...parserFileOption) (varProp typeVarProp, err []error) {
 	varProp = opts[0].varProp
 	var envMap = make(map[string]string)
 	err = []error{}

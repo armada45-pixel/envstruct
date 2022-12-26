@@ -1,0 +1,5 @@
+package envstruct
+
+func parserData() {
+
+}

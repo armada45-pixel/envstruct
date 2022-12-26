@@ -21,7 +21,7 @@ type Options struct {
 
 	// Incoming in next version
 	// if ture = read os.env and put to Variable
-	// ReadOS bool // default false
+	ReadOS bool // default false
 
 	// if true = read all in file and put to os.env ( if PutToOs true )
 	// ReadAll bool // default false
@@ -53,7 +53,7 @@ func Setup(optA ...Options) (err []error) {
 				varProp, errCheckVar = prepareVar(opt.VarPtr)
 				err = append(err, errCheckVar...)
 			}
-			newVarProp, errParser := parserFile(file, parserOption{
+			newVarProp, errParser := parserFile(file, parserFileOption{
 				varProp: varProp,
 			})
 			err = append(err, errParser...)
