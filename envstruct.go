@@ -85,21 +85,22 @@ func setVar(newVarProp typeVarProp) (err []error) {
 	refType := ref.Type()
 	for i := 0; i < refType.NumField(); i++ {
 		newProp := newVarProp.prop[i]
-		refTypeField := newProp.refTypeField
-		newValue := newProp.readValue
-		typee := refTypeField.Type
 		refField := ref.Field(i)
+		value := newProp.defaultValue
 		fieldee := refField
-		if typee.Kind() == reflect.Ptr {
-			typee = typee.Elem()
-			fieldee = refField.Elem()
+		if newProp.didRead {
+			refTypeField := newProp.refTypeField
+			typee := refTypeField.Type
+			if typee.Kind() == reflect.Ptr {
+				typee = typee.Elem()
+				fieldee = refField.Elem()
+			}
+			value = newProp.readValue
 		}
-		if !newProp.didRead {
-			newValue = newProp.defaultValue
-		}
-		if !reflect.ValueOf(newValue).IsZero() {
-			fieldee.Set(reflect.ValueOf(newValue))
-		} else if newProp.required {
+		refValue := reflect.ValueOf(value)
+		// fieldee.Set(refValue.Convert(typee)) // working
+		fieldee.Set(refValue)
+		if !newProp.didRead && newProp.required && refValue.IsZero() {
 			err = append(err, errors.New("Field "+refField.Type().Name()+" Required is True, But can't get any value."))
 		}
 	}

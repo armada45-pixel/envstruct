@@ -75,10 +75,10 @@ func prepareVar(VarPtr interface{}) (ls typeVarProp, err []error) {
 		var defaultValue any
 		var defaultValueField_i = ref.Field(i)
 		var defaultIsSet bool
+		typeVarKind := refField.Type.Kind()
 		if defaultValueField_i.IsZero() {
 			defaultString := refField.Tag.Get("default")
 			if len(defaultString) != 0 {
-				typeVarKind := refField.Type.Kind()
 				parserFunc, foundFunc := defaultBuiltInParsers[typeVarKind]
 				if !foundFunc {
 					err = append(err, errors.New("Parser Function For Type "+typeVarKind.String()+" In Field "+refField.Name+""))
@@ -93,9 +93,13 @@ func prepareVar(VarPtr interface{}) (ls typeVarProp, err []error) {
 					}
 				}
 			}
+		} else {
+			defaultIsSet = true
+			defaultValue = defaultValueField_i.Interface()
+			// reflect.ValueOf(defaultValueField_i)
 		}
 		if !defaultIsSet {
-			defaultValue = defaultValueField_i
+			defaultValue = defalutValue(typeVarKind)
 		}
 
 		ls.prop[i] = varFieldProp{
