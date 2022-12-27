@@ -42,12 +42,16 @@ func main() {
 ```
 ## Options
 For now you can use only 2 option
-* **VarPtr** send pointer of struct variable.
+* **VarPtr** Send pointer of struct variable.
 * **FileName** Path and File name to locate env file, *default is ".env"*.
+* **IgnoreFile** Don't Read .env file.
+* **ReadOS** Read environment variable in OS.
 ```go
 	opt := envstruct.Options{
 		VarPtr:   &cfg,
 		FileName: ".env.local", // can remove this for use default name
+		IgnoreFile: false,
+		ReadOS: true,
 	}
 ```
 ## Return
@@ -83,3 +87,6 @@ All value from your env file in here now.
 
 1.0.3
 * Change set function
+
+1.0.4
+* Add Read OS Env
