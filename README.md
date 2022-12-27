@@ -83,3 +83,6 @@ All value from your env file in here now.
 
 1.0.3
 * Change set function
+
+1.0.4
+* Add Read OS Env
