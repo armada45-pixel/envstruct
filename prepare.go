@@ -84,7 +84,6 @@ func prepareVar(VarPtr interface{}) (ls typeVarProp, err []error) {
 					err = append(err, errors.New("Parser Function For Type "+typeVarKind.String()+" In Field "+refField.Name+""))
 				} else {
 					parseValue, errParse := parserFunc(defaultString)
-					// fmt.Println(parseValue, reflect.TypeOf(parseValue))
 					if errParse != nil {
 						err = append(err, errParse)
 					} else {
@@ -96,7 +95,6 @@ func prepareVar(VarPtr interface{}) (ls typeVarProp, err []error) {
 		} else {
 			defaultIsSet = true
 			defaultValue = defaultValueField_i.Interface()
-			// reflect.ValueOf(defaultValueField_i)
 		}
 		if !defaultIsSet {
 			defaultFunc, _ := defaultValueMap[typeVarKind]
