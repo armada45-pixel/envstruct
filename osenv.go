@@ -10,7 +10,7 @@ type parserOSOption struct {
 	// envFileMap map[string]string
 }
 
-func parserEnv(opts ...parserOSOption) (varProp typeVarProp, err []error) {
+func parserOSEnv(opts ...parserOSOption) (varProp typeVarProp, err []error) {
 	varProp = opts[0].varProp
 	osenv := os.Environ()
 
@@ -27,13 +27,15 @@ func parserEnv(opts ...parserOSOption) (varProp typeVarProp, err []error) {
 			if len(errParserData) != 0 {
 				err = append(err, errParserData...)
 			}
-			varProp.prop[keyProp] = varFieldProp{
-				defaultValue: prop.defaultValue,
-				required:     prop.required,
+			if !prop.didRead {
+				varProp.prop[keyProp] = varFieldProp{
+					defaultValue: prop.defaultValue,
+					required:     prop.required,
 
-				didRead:      true,
-				readValue:    newValue,
-				refTypeField: typeVar,
+					didRead:      true,
+					readValue:    newValue,
+					refTypeField: typeVar,
+				}
 			}
 		}
 	}

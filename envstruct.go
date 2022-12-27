@@ -41,36 +41,45 @@ func Setup(optA ...Options) (err []error) {
 	opt := checkOptions(optA)
 
 	fileName := opt.FileName
-	if opt.ReadOS {
-		parserEnv()
-	}
 	var varProp = typeVarProp{}
 	var errCheckVar []error
+
 	if opt.VarPtr != nil {
 		varProp, errCheckVar = prepareVar(opt.VarPtr)
 		err = append(err, errCheckVar...)
 	}
+
 	if !opt.IgnoreFile {
 		file, errFile := os.Open(fileName)
 		if errFile != nil {
 			err = append(err, errFile)
 		} else {
 			defer file.Close()
-			varProp, errParser := parserFile(file, parserFileOption{
+			var errParser []error
+			varProp, errParser = parserFile(file, parserFileOption{
 				varProp: varProp,
 			})
 			err = append(err, errParser...)
-			if len(errCheckVar) == 0 {
-				if errSet := set(varProp); len(errSet) != 0 {
-					err = append(err, errSet...)
-				}
-			}
+		}
+	}
+
+	if opt.ReadOS {
+		var errParser []error
+		varProp, errParser = parserOSEnv(parserOSOption{
+			varProp: varProp,
+		})
+		err = append(err, errParser...)
+	}
+
+	if len(errCheckVar) == 0 {
+		if errSet := setVar(varProp); len(errSet) != 0 {
+			err = append(err, errSet...)
 		}
 	}
 	return
 }
 
-func set(newVarProp typeVarProp) (err []error) {
+func setVar(newVarProp typeVarProp) (err []error) {
 
 	ref := newVarProp.ref
 	refType := ref.Type()
