@@ -30,7 +30,7 @@ func checkOptions(optArray []Options) Options {
 }
 
 func prepareVar(VarPtr interface{}) (ls typeVarProp, err []error) {
-	err = []error{}
+
 	ls = typeVarProp{
 		check:   false,
 		prop:    make(map[int]varFieldProp),

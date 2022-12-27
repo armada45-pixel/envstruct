@@ -37,29 +37,31 @@ type Options struct {
 }
 
 func Setup(optA ...Options) (err []error) {
-	err = []error{}
+
 	opt := checkOptions(optA)
 
 	fileName := opt.FileName
+	if opt.ReadOS {
+		parserEnv()
+	}
+	var varProp = typeVarProp{}
+	var errCheckVar []error
+	if opt.VarPtr != nil {
+		varProp, errCheckVar = prepareVar(opt.VarPtr)
+		err = append(err, errCheckVar...)
+	}
 	if !opt.IgnoreFile {
 		file, errFile := os.Open(fileName)
 		if errFile != nil {
 			err = append(err, errFile)
 		} else {
 			defer file.Close()
-			var varProp = typeVarProp{}
-			var errCheckVar []error
-			if opt.VarPtr != nil {
-				varProp, errCheckVar = prepareVar(opt.VarPtr)
-				err = append(err, errCheckVar...)
-			}
-			newVarProp, errParser := parserFile(file, parserFileOption{
+			varProp, errParser := parserFile(file, parserFileOption{
 				varProp: varProp,
 			})
 			err = append(err, errParser...)
-			// if ((len(errCheckVar) == 0) && (errSet := set(newVarProp); len(errSet) != 0)) {
 			if len(errCheckVar) == 0 {
-				if errSet := set(newVarProp); len(errSet) != 0 {
+				if errSet := set(varProp); len(errSet) != 0 {
 					err = append(err, errSet...)
 				}
 			}
@@ -69,7 +71,7 @@ func Setup(optA ...Options) (err []error) {
 }
 
 func set(newVarProp typeVarProp) (err []error) {
-	err = []error{}
+
 	ref := newVarProp.ref
 	refType := ref.Type()
 	for i := 0; i < refType.NumField(); i++ {
