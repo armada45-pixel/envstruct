@@ -5,6 +5,7 @@
 *.so
 *.dylib
 
+main.go
 .env
 *.local
 .air.toml
@@ -19,3 +20,4 @@ ref
 
 # Dependency directories (remove the comment below to include it)
 # vendor/
+main_test.go

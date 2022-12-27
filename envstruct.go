@@ -21,7 +21,7 @@ type Options struct {
 
 	// Incoming in next version
 	// if ture = read os.env and put to Variable
-	// ReadOS bool // default false
+	ReadOS bool // default false
 
 	// if true = read all in file and put to os.env ( if PutToOs true )
 	// ReadAll bool // default false
@@ -37,58 +37,69 @@ type Options struct {
 }
 
 func Setup(optA ...Options) (err []error) {
-	err = []error{}
+
 	opt := checkOptions(optA)
 
 	fileName := opt.FileName
+	var varProp = typeVarProp{}
+	var errCheckVar []error
+
+	if opt.VarPtr != nil {
+		varProp, errCheckVar = prepareVar(opt.VarPtr)
+		err = append(err, errCheckVar...)
+	}
+
 	if !opt.IgnoreFile {
 		file, errFile := os.Open(fileName)
 		if errFile != nil {
 			err = append(err, errFile)
 		} else {
 			defer file.Close()
-			var varProp = typeVarProp{}
-			var errCheckVar []error
-			if opt.VarPtr != nil {
-				varProp, errCheckVar = prepareVar(opt.VarPtr)
-				err = append(err, errCheckVar...)
-			}
-			newVarProp, errParser := parserFile(file, parserOption{
+			var errParser []error
+			varProp, errParser = parserFile(file, parserFileOption{
 				varProp: varProp,
 			})
 			err = append(err, errParser...)
-			// if ((len(errCheckVar) == 0) && (errSet := set(newVarProp); len(errSet) != 0)) {
-			if len(errCheckVar) == 0 {
-				if errSet := set(newVarProp); len(errSet) != 0 {
-					err = append(err, errSet...)
-				}
-			}
+		}
+	}
+
+	if opt.ReadOS {
+		var errParser []error
+		varProp, errParser = parserOSEnv(parserOSOption{
+			varProp: varProp,
+		})
+		err = append(err, errParser...)
+	}
+
+	if len(errCheckVar) == 0 {
+		if errSet := setVar(varProp); len(errSet) != 0 {
+			err = append(err, errSet...)
 		}
 	}
 	return
 }
 
-func set(newVarProp typeVarProp) (err []error) {
-	err = []error{}
+func setVar(newVarProp typeVarProp) (err []error) {
+
 	ref := newVarProp.ref
 	refType := ref.Type()
 	for i := 0; i < refType.NumField(); i++ {
 		newProp := newVarProp.prop[i]
-		refTypeField := newProp.refTypeField
-		newValue := newProp.readValue
-		typee := refTypeField.Type
 		refField := ref.Field(i)
+		value := newProp.defaultValue
 		fieldee := refField
-		if typee.Kind() == reflect.Ptr {
-			typee = typee.Elem()
-			fieldee = refField.Elem()
+		if newProp.didRead {
+			refTypeField := newProp.refTypeField
+			typee := refTypeField.Type
+			if typee.Kind() == reflect.Ptr {
+				typee = typee.Elem()
+				fieldee = refField.Elem()
+			}
+			value = newProp.readValue
 		}
-		if !newProp.didRead {
-			newValue = newProp.defaultValue
-		}
-		if !reflect.ValueOf(newValue).IsZero() {
-			fieldee.Set(reflect.ValueOf(newValue))
-		} else if newProp.required {
+		refValue := reflect.ValueOf(value)
+		fieldee.Set(refValue)
+		if !newProp.didRead && newProp.required && refValue.IsZero() {
 			err = append(err, errors.New("Field "+refField.Type().Name()+" Required is True, But can't get any value."))
 		}
 	}

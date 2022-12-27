@@ -8,14 +8,14 @@ import (
 	"strings"
 )
 
-type parserOption struct {
+type parserFileOption struct {
 	varProp typeVarProp
 }
 
-func parserFile(file io.Reader, opts ...parserOption) (varProp typeVarProp, err []error) {
+func parserFile(file io.Reader, opts ...parserFileOption) (varProp typeVarProp, err []error) {
 	varProp = opts[0].varProp
 	var envMap = make(map[string]string)
-	err = []error{}
+
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
 		text := scanner.Text()
@@ -28,27 +28,19 @@ func parserFile(file io.Reader, opts ...parserOption) (varProp typeVarProp, err 
 				envMap[key] = value
 				keyProp, found := varProp.ENVname[key]
 				if found {
-					typeVar := varProp.prop[keyProp].refTypeField
-					typeVarKind := typeVar.Type.Kind()
-					parserFunc, foundFunc := defaultBuiltInParsers[typeVarKind]
-					if !foundFunc {
-						err = append(err, errors.New("Parser Function For Type "+typeVarKind.String()+" In Field "+typeVar.Name+""))
-					} else {
-						parseValue, errParse := parserFunc(value)
-						newValue := varProp.prop[keyProp].defaultValue
-						if errParse != nil {
-							err = append(err, errParse)
-						} else {
-							newValue = parseValue
-						}
-						varProp.prop[keyProp] = varFieldProp{
-							defaultValue: varProp.prop[keyProp].defaultValue,
-							required:     varProp.prop[keyProp].required,
+					prop := varProp.prop[keyProp]
+					typeVar := prop.refTypeField
+					newValue, errParserData := parserData(varProp, typeVar, keyProp, value)
+					if len(errParserData) != 0 {
+						err = append(err, errParserData...)
+					}
+					varProp.prop[keyProp] = varFieldProp{
+						defaultValue: varProp.prop[keyProp].defaultValue,
+						required:     varProp.prop[keyProp].required,
 
-							didRead:      true,
-							readValue:    newValue,
-							refTypeField: typeVar,
-						}
+						didRead:      true,
+						readValue:    newValue,
+						refTypeField: typeVar,
 					}
 				}
 			}
