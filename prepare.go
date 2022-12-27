@@ -99,7 +99,8 @@ func prepareVar(VarPtr interface{}) (ls typeVarProp, err []error) {
 			// reflect.ValueOf(defaultValueField_i)
 		}
 		if !defaultIsSet {
-			defaultValue = defalutValue(typeVarKind)
+			defaultFunc, _ := defaultValueMap[typeVarKind]
+			defaultValue = defaultFunc()
 		}
 
 		ls.prop[i] = varFieldProp{
