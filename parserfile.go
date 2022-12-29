@@ -4,17 +4,19 @@ import (
 	"bufio"
 	"errors"
 	"io"
+	"os"
 	"regexp"
 	"strings"
 )
 
 type parserFileOption struct {
 	varProp typeVarProp
+	envMap  map[string]string
 }
 
-func parserFile(file io.Reader, opts ...parserFileOption) (varProp typeVarProp, err []error) {
+func parserFile(file io.Reader, opt Options, opts ...parserFileOption) (varProp typeVarProp, envMap map[string]string, err []error) {
 	varProp = opts[0].varProp
-	var envMap = make(map[string]string)
+	envMap = opts[0].envMap
 
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
@@ -25,8 +27,13 @@ func parserFile(file io.Reader, opts ...parserFileOption) (varProp typeVarProp, 
 			if errLine != nil {
 				err = append(err, errLine)
 			} else {
-				envMap[key] = value
 				keyProp, found := varProp.ENVname[key]
+				if opt.PutToOs && (found || opt.ReadAll) {
+					envMap[key] = value
+				}
+				if opt.PutToOs && opt.OverRide {
+					os.Setenv(key, value)
+				}
 				if found {
 					prop := varProp.prop[keyProp]
 					typeVar := prop.refTypeField
@@ -48,7 +55,7 @@ func parserFile(file io.Reader, opts ...parserFileOption) (varProp typeVarProp, 
 	}
 
 	if errScan := scanner.Err(); errScan != nil {
-		return varProp, append(err, errScan)
+		return varProp, envMap, append(err, errScan)
 	}
 	return
 }
