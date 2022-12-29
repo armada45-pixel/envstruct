@@ -46,12 +46,14 @@ For now you can use only 2 option
 * **FileName** Path and File name to locate env file, *default is ".env"*.
 * **IgnoreFile** Don't Read .env file.
 * **ReadOS** Read environment variable in OS.
+* **OsFirst** If have os.env and env file will choose os.env
 ```go
 	opt := envstruct.Options{
 		VarPtr:   &cfg,
 		FileName: ".env.local", // can remove this for use default name
 		IgnoreFile: false,
 		ReadOS: true,
+		OsFirst true,
 	}
 ```
 ## Return
@@ -90,3 +92,6 @@ All value from your env file in here now.
 
 1.0.4
 * Add Read OS Env
+
+1.0.5
+* Add Read OS First
