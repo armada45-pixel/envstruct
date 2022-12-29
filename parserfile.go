@@ -40,15 +40,16 @@ func parserFile(file io.Reader, opt Options, opts ...parserFileOption) (varProp 
 					newValue, errParserData := parserData(varProp, typeVar, keyProp, value)
 					if len(errParserData) != 0 {
 						err = append(err, errParserData...)
-					}
-					varProp.prop[keyProp] = varFieldProp{
-						defaultIsSet: prop.defaultIsSet,
-						defaultValue: prop.defaultValue,
-						required:     prop.required,
+					} else {
+						varProp.prop[keyProp] = varFieldProp{
+							defaultIsSet: prop.defaultIsSet,
+							defaultValue: prop.defaultValue,
+							required:     prop.required,
 
-						didRead:      true,
-						readValue:    newValue,
-						refTypeField: typeVar,
+							didRead:      true,
+							readValue:    newValue,
+							refTypeField: typeVar,
+						}
 					}
 				}
 			}

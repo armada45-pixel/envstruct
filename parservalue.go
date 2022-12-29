@@ -15,7 +15,7 @@ func parserData(varProp typeVarProp, typeVar reflect.StructField, keyProp int, v
 		parseValue, errParse := parserFunc(value)
 		if errParse != nil {
 			err = append(err, errParse)
-			newValue = varProp.prop[keyProp].defaultValue
+			// newValue = varProp.prop[keyProp].defaultValue
 		} else {
 			newValue = parseValue
 		}
