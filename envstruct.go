@@ -106,21 +106,3 @@ func setVar(newVarProp typeVarProp) (err []error) {
 	}
 	return
 }
-
-type typeVarProp struct {
-	check   bool
-	prop    map[int]varFieldProp
-	OSname  map[string]int
-	ENVname map[string]int
-	varPtr  interface{}
-	ref     reflect.Value
-	// refType reflect.Type
-}
-
-type varFieldProp struct {
-	defaultValue any
-	required     bool
-	didRead      bool
-	readValue    any
-	refTypeField reflect.StructField
-}
