@@ -33,7 +33,7 @@ type Options struct {
 	// OverRide bool // default false
 
 	// if true = if have os.env and env file will choose os.env
-	// osFirst bool // default false
+	OsFirst bool // default false
 }
 
 func Setup(optA ...Options) (err []error) {
@@ -67,6 +67,7 @@ func Setup(optA ...Options) (err []error) {
 		var errParser []error
 		varProp, errParser = parserOSEnv(parserOSOption{
 			varProp: varProp,
+			opt:     opt,
 		})
 		err = append(err, errParser...)
 	}

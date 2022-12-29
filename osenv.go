@@ -8,10 +8,12 @@ import (
 type parserOSOption struct {
 	varProp typeVarProp
 	// envFileMap map[string]string
+	opt Options
 }
 
 func parserOSEnv(opts ...parserOSOption) (varProp typeVarProp, err []error) {
 	varProp = opts[0].varProp
+	opt := opts[0].opt
 	osenv := os.Environ()
 
 	for _, v := range osenv {
@@ -27,7 +29,7 @@ func parserOSEnv(opts ...parserOSOption) (varProp typeVarProp, err []error) {
 			if len(errParserData) != 0 {
 				err = append(err, errParserData...)
 			}
-			if !prop.didRead {
+			if !prop.didRead || opt.OsFirst {
 				varProp.prop[keyProp] = varFieldProp{
 					defaultValue: prop.defaultValue,
 					required:     prop.required,
