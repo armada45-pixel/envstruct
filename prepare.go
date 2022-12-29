@@ -6,6 +6,24 @@ import (
 	"strconv"
 )
 
+type typeVarProp struct {
+	check   bool
+	prop    map[int]varFieldProp
+	OSname  map[string]int
+	ENVname map[string]int
+	varPtr  interface{}
+	ref     reflect.Value
+	// refType reflect.Type
+}
+
+type varFieldProp struct {
+	defaultValue any
+	required     bool
+	didRead      bool
+	readValue    any
+	refTypeField reflect.StructField
+}
+
 func checkOptions(optArray []Options) Options {
 	// Default Option
 	defOpt := Options{

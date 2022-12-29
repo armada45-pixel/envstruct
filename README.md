@@ -46,13 +46,21 @@ For now you can use only 2 option
 * **FileName** Path and File name to locate env file, *default is ".env"*.
 * **IgnoreFile** Don't Read .env file.
 * **ReadOS** Read environment variable in OS.
-* **OsFirst** If have os.env and env file will choose os.env
+* **OsFirst** If have os.env and env file will choose os.env.
+* **ReadAll** Read all in file and put to os.env ( if PutToOs true )
+* **PutToOs** Put variable from file to os.env variable.
+* **OverRide** If already variable in same name in os.env variable will replace.
+* **OsFirst** If have os.env and env file will choose os.env.
 ```go
 	opt := envstruct.Options{
 		VarPtr:   &cfg,
 		FileName: ".env.local", // can remove this for use default name
 		IgnoreFile: false,
 		ReadOS: true,
+		ReadAll: true,
+		OsFirst: false,
+		PutToOs: true,
+		OverRide: true,
 		OsFirst: true,
 	}
 ```
@@ -95,3 +103,8 @@ All value from your env file in here now.
 
 1.0.5
 * Add Read OS First
+
+1.0.6
+* Add Read All in File
+* Put to OS
+* Over Ride OS
