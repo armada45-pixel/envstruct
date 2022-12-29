@@ -42,8 +42,9 @@ func parserFile(file io.Reader, opt Options, opts ...parserFileOption) (varProp 
 						err = append(err, errParserData...)
 					}
 					varProp.prop[keyProp] = varFieldProp{
-						defaultValue: varProp.prop[keyProp].defaultValue,
-						required:     varProp.prop[keyProp].required,
+						defaultIsSet: prop.defaultIsSet,
+						defaultValue: prop.defaultValue,
+						required:     prop.required,
 
 						didRead:      true,
 						readValue:    newValue,

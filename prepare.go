@@ -18,6 +18,7 @@ type typeVarProp struct {
 
 type varFieldProp struct {
 	defaultValue any
+	defaultIsSet bool
 	required     bool
 	didRead      bool
 	readValue    any
@@ -94,7 +95,7 @@ func prepareVar(VarPtr interface{}) (ls typeVarProp, err []error) {
 		var defaultValueField_i = ref.Field(i)
 		var defaultIsSet bool
 		typeVarKind := refField.Type.Kind()
-		if defaultValueField_i.IsZero() {
+		if defaultValueField_i.IsZero() && (reflect.Bool != defaultValueField_i.Kind()) {
 			defaultString := refField.Tag.Get("default")
 			if len(defaultString) != 0 {
 				parserFunc, foundFunc := defaultBuiltInParsers[typeVarKind]
@@ -110,16 +111,10 @@ func prepareVar(VarPtr interface{}) (ls typeVarProp, err []error) {
 					}
 				}
 			}
-		} else {
-			defaultIsSet = true
-			defaultValue = defaultValueField_i.Interface()
-		}
-		if !defaultIsSet {
-			defaultFunc, _ := defaultValueMap[typeVarKind]
-			defaultValue = defaultFunc()
 		}
 
 		ls.prop[i] = varFieldProp{
+			defaultIsSet: defaultIsSet,
 			defaultValue: defaultValue,
 			required:     required,
 			refTypeField: refField,

@@ -34,6 +34,7 @@ func parserOSEnv(opts ...parserOSOption) (varProp typeVarProp, err []error) {
 				}
 				if !prop.didRead || opt.OsFirst {
 					varProp.prop[keyProp] = varFieldProp{
+						defaultIsSet: prop.defaultIsSet,
 						defaultValue: prop.defaultValue,
 						required:     prop.required,
 
@@ -43,9 +44,6 @@ func parserOSEnv(opts ...parserOSOption) (varProp typeVarProp, err []error) {
 					}
 				}
 			}
-			// if foundEnv && opt.OverRide {
-			// 	os.Setenv(key, fileValue)
-			// }
 		} else if foundEnv {
 			os.Setenv(key, fileValue)
 		}
