@@ -24,13 +24,13 @@ type Options struct {
 	ReadOS bool // default false
 
 	// if true = read all in file and put to os.env ( if PutToOs true )
-	// ReadAll bool // default false
+	ReadAll bool // default false
 
 	// if true = put variable from file to os.env variable
-	// PutToOs bool // default false
+	PutToOs bool // default false
 
 	// if true = if already variable in same name in os.env variable will replace
-	// OverRide bool // default false
+	OverRide bool // default false
 
 	// if true = if have os.env and env file will choose os.env
 	OsFirst bool // default false
@@ -49,6 +49,7 @@ func Setup(optA ...Options) (err []error) {
 		err = append(err, errCheckVar...)
 	}
 
+	var envMap map[string]string
 	if !opt.IgnoreFile {
 		file, errFile := os.Open(fileName)
 		if errFile != nil {
@@ -56,21 +57,23 @@ func Setup(optA ...Options) (err []error) {
 		} else {
 			defer file.Close()
 			var errParser []error
-			varProp, errParser = parserFile(file, parserFileOption{
+			varProp, envMap, errParser = parserFile(file, opt, parserFileOption{
 				varProp: varProp,
+				envMap:  make(map[string]string),
 			})
 			err = append(err, errParser...)
 		}
 	}
 
-	if opt.ReadOS {
-		var errParser []error
-		varProp, errParser = parserOSEnv(parserOSOption{
-			varProp: varProp,
-			opt:     opt,
-		})
-		err = append(err, errParser...)
-	}
+	// if opt.ReadOS {
+	var errParser []error
+	varProp, errParser = parserOSEnv(parserOSOption{
+		varProp: varProp,
+		opt:     opt,
+		envMap:  envMap,
+	})
+	err = append(err, errParser...)
+	// }
 
 	if len(errCheckVar) == 0 {
 		if errSet := setVar(varProp); len(errSet) != 0 {
@@ -105,22 +108,4 @@ func setVar(newVarProp typeVarProp) (err []error) {
 		}
 	}
 	return
-}
-
-type typeVarProp struct {
-	check   bool
-	prop    map[int]varFieldProp
-	OSname  map[string]int
-	ENVname map[string]int
-	varPtr  interface{}
-	ref     reflect.Value
-	// refType reflect.Type
-}
-
-type varFieldProp struct {
-	defaultValue any
-	required     bool
-	didRead      bool
-	readValue    any
-	refTypeField reflect.StructField
 }
