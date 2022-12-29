@@ -53,7 +53,7 @@ For now you can use only 2 option
 		FileName: ".env.local", // can remove this for use default name
 		IgnoreFile: false,
 		ReadOS: true,
-		OsFirst true,
+		OsFirst: true,
 	}
 ```
 ## Return
