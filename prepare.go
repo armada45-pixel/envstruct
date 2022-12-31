@@ -61,7 +61,7 @@ func checkVarType(VarPtr interface{}) (reflect.Value, error) {
 	return ref, nil
 }
 
-func prepareVar(VarPtr interface{}, ref reflect.Value) (ls typeVarProp, err []error) {
+func prepareVar(VarPtr interface{}, ref reflect.Value, allParserFunc map[reflect.Type]TypeDefaultBy) (ls typeVarProp, err []error) {
 
 	ls = typeVarProp{
 		check:   false,
@@ -103,7 +103,7 @@ func prepareVar(VarPtr interface{}, ref reflect.Value) (ls typeVarProp, err []er
 		if defaultValueField_i.IsZero() && (reflect.TypeOf(reflect.Bool) != sometype) {
 			defaultString := refField.Tag.Get("default")
 			if len(defaultString) != 0 {
-				searchDefault, found := defaultByType[sometype]
+				searchDefault, found := allParserFunc[sometype]
 				if !found {
 					err = append(err, errors.New("Parser Function For Type "+sometype.String()+" In Field "+refField.Name+""))
 				} else {

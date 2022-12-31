@@ -14,12 +14,14 @@ type TypeDefaultBy struct {
 	ValueDefault interface{}
 }
 
+// type map[reflect.Type]
+
 var (
 	// ErrNotAStructPtr is returned if you pass something that is not a pointer to a
 	// Struct to Parse.
 	ErrNotAStructPtr = errors.New("env: expected a pointer to a Struct")
 
-	defaultByType = map[reflect.Type]TypeDefaultBy{
+	DefaultByType = map[reflect.Type]TypeDefaultBy{
 		reflect.TypeOf(false): {
 			ParserFunc: func(v string) (interface{}, error) {
 				return strconv.ParseBool(v)

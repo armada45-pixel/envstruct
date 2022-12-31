@@ -2,13 +2,15 @@ package envstruct
 
 import (
 	"os"
+	"reflect"
 	"strings"
 )
 
 type parserOSOption struct {
-	varProp typeVarProp
-	envMap  map[string]string
-	opt     Options
+	varProp       typeVarProp
+	envMap        map[string]string
+	opt           Options
+	allParserFunc map[reflect.Kind]TypeDefaultBy
 }
 
 func parserOSEnv(opts ...parserOSOption) (varProp typeVarProp, err []error) {
@@ -28,7 +30,7 @@ func parserOSEnv(opts ...parserOSOption) (varProp typeVarProp, err []error) {
 			if opt.ReadOS {
 				prop := varProp.prop[keyProp]
 				typeVar := prop.refTypeField
-				newValue, errParserData := parserData(prop.typeProp, typeVar, value)
+				newValue, errParserData := parserData(prop.typeProp, typeVar, value, opt.CustomParserFunc)
 				if len(errParserData) != 0 {
 					err = append(err, errParserData...)
 				} else {

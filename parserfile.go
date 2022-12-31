@@ -5,12 +5,14 @@ import (
 	"errors"
 	"io"
 	"os"
+	"reflect"
 	"regexp"
 	"strings"
 )
 
 type parserFileOption struct {
-	varProp typeVarProp
+	varProp       typeVarProp
+	allParserFunc map[reflect.Type]TypeDefaultBy
 }
 
 func parserFile(file io.Reader, opt Options, opts ...parserFileOption) (varProp typeVarProp, envMap map[string]string, err []error) {
@@ -36,7 +38,7 @@ func parserFile(file io.Reader, opt Options, opts ...parserFileOption) (varProp 
 				if found {
 					prop := varProp.prop[keyProp]
 					typeVar := prop.refTypeField
-					newValue, errParserData := parserData(prop.typeProp, typeVar, value)
+					newValue, errParserData := parserData(prop.typeProp, typeVar, value, opts[0].allParserFunc)
 					if len(errParserData) != 0 {
 						err = append(err, errParserData...)
 					} else {

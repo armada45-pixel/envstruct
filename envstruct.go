@@ -38,7 +38,7 @@ type Options struct {
 	OsFirst bool // default false
 
 	// Custom parser function for custom type
-	CustomParserFunc []TypeCustomParserFunc
+	CustomParserFunc map[reflect.Type]TypeDefaultBy
 }
 
 func Setup(optA ...Options) (err []error) {
@@ -49,6 +49,7 @@ func Setup(optA ...Options) (err []error) {
 	var varProp = typeVarProp{}
 	var ref reflect.Value
 	var errCheckVarWrongType error
+	var allParserFunc = make(map[reflect.Type]TypeDefaultBy)
 
 	if opt.VarPtr != nil {
 		ref, errCheckVarWrongType = checkVarType(opt.VarPtr)
@@ -56,7 +57,13 @@ func Setup(optA ...Options) (err []error) {
 			err = append(err, errCheckVarWrongType)
 		} else {
 			var errCheckVar []error
-			varProp, errCheckVar = prepareVar(opt.VarPtr, ref)
+			allParserFunc = DefaultByType
+			if len(opt.CustomParserFunc) != 0 {
+				for key, value := range opt.CustomParserFunc {
+					allParserFunc[key] = value
+				}
+			}
+			varProp, errCheckVar = prepareVar(opt.VarPtr, ref, allParserFunc)
 			err = append(err, errCheckVar...)
 		}
 	}
