@@ -29,11 +29,10 @@ func parserFile(file io.Reader, opt Options, opts ...parserFileOption) (varProp 
 				err = append(err, errLine)
 			} else {
 				keyProp, found := varProp.ENVname[key]
-				if opt.PutToOs && (found || opt.ReadAll) {
-					envMap[key] = value
-				}
 				if opt.PutToOs && opt.OverRide {
 					os.Setenv(key, value)
+				} else if opt.PutToOs && (found || opt.ReadAll) {
+					envMap[key] = value
 				}
 				if found {
 					prop := varProp.prop[keyProp]
