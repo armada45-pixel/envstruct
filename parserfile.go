@@ -1,3 +1,4 @@
+// version 1.0.7
 package envstruct
 
 import (
