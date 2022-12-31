@@ -1,3 +1,4 @@
+// version 1.0.7
 package envstruct
 
 import (
@@ -5,18 +6,19 @@ import (
 	"errors"
 	"io"
 	"os"
+	"reflect"
 	"regexp"
 	"strings"
 )
 
 type parserFileOption struct {
-	varProp typeVarProp
-	envMap  map[string]string
+	varProp       typeVarProp
+	allParserFunc map[reflect.Type]TypeDefaultBy
 }
 
 func parserFile(file io.Reader, opt Options, opts ...parserFileOption) (varProp typeVarProp, envMap map[string]string, err []error) {
 	varProp = opts[0].varProp
-	envMap = opts[0].envMap
+	envMap = make(map[string]string)
 
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
@@ -28,26 +30,28 @@ func parserFile(file io.Reader, opt Options, opts ...parserFileOption) (varProp 
 				err = append(err, errLine)
 			} else {
 				keyProp, found := varProp.ENVname[key]
-				if opt.PutToOs && (found || opt.ReadAll) {
-					envMap[key] = value
-				}
 				if opt.PutToOs && opt.OverRide {
 					os.Setenv(key, value)
+				} else if opt.PutToOs && (found || opt.ReadAll) {
+					envMap[key] = value
 				}
 				if found {
 					prop := varProp.prop[keyProp]
 					typeVar := prop.refTypeField
-					newValue, errParserData := parserData(varProp, typeVar, keyProp, value)
+					newValue, errParserData := parserData(prop.typeProp, typeVar, value, opts[0].allParserFunc)
 					if len(errParserData) != 0 {
 						err = append(err, errParserData...)
-					}
-					varProp.prop[keyProp] = varFieldProp{
-						defaultValue: varProp.prop[keyProp].defaultValue,
-						required:     varProp.prop[keyProp].required,
+					} else {
+						varProp.prop[keyProp] = varFieldProp{
+							defaultIsSet: prop.defaultIsSet,
+							defaultValue: prop.defaultValue,
+							required:     prop.required,
+							typeProp:     prop.typeProp,
 
-						didRead:      true,
-						readValue:    newValue,
-						refTypeField: typeVar,
+							didRead:      true,
+							readValue:    newValue,
+							refTypeField: typeVar,
+						}
 					}
 				}
 			}

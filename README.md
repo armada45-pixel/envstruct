@@ -51,6 +51,7 @@ For now you can use only 2 option
 * **PutToOs** Put variable from file to os.env variable.
 * **OverRide** If already variable in same name in os.env variable will replace.
 * **OsFirst** If have os.env and env file will choose os.env.
+* **CustomType** Map for write custom default value and parser function.
 ```go
 	opt := envstruct.Options{
 		VarPtr:   &cfg,
@@ -62,6 +63,37 @@ For now you can use only 2 option
 		PutToOs: true,
 		OverRide: true,
 		OsFirst: true,
+		CustomType: map[reflect.Type]TypeDefaultBy{
+			reflect.TypeOf(Pro): {
+				ParserFunc: func(v string) (interface{}, error) {
+					searchDefault, _ := envstruct.DefaultByType[reflect.TypeOf(false)]
+					value, _ := searchDefault.ParserFunc(v)
+					if value == true {
+						return Pro, nil
+					}
+					return Dev, nil
+				},
+				ValueDefault: modeE(false),
+			},
+		},
+	}
+
+	type modeE bool
+
+	const (
+		Pro modeE = false
+		Dev modeE = true
+	)
+
+	func (m modeE) String() string {
+		if !m {
+			return "production"
+		}
+		return "development"
+	}
+
+	func (m modeE) Bool() bool {
+		return bool(m)
 	}
 ```
 ## Return
@@ -75,8 +107,8 @@ Return array of error.
 All value from your env file in here now.
 ```go
 	fmt.Println(cfg)
-  fmt.Println(cfg.Port)
-  fmt.Println(cfg.Mode)
+	fmt.Println(cfg.Port)
+	fmt.Println(cfg.Mode)
 }
 
 ```
@@ -94,17 +126,23 @@ All value from your env file in here now.
 * Change function name ( export )
 * Remove main function
 * Change module name to envstruct
+* [a6aa3b2](https://github.com/armada45-pixel/envstruct/commit/a6aa3b27764cdb3c0d810118b258251e60e38b9d#)
 
 1.0.3
-* Change set function
+* Change set function [0e6505f](https://github.com/armada45-pixel/envstruct/commit/0e6505f9f6297885737fdd774372e0e3f1a0b1d8)
 
 1.0.4
-* Add Read OS Env
+* Add Read OS Env [#4](https://github.com/armada45-pixel/envstruct/issues/4)
 
 1.0.5
-* Add Read OS First
+* Add Read OS First [#23](https://github.com/armada45-pixel/envstruct/issues/23)
 
 1.0.6
-* Add Read All in File
-* Put to OS
-* Over Ride OS
+* Add Read All in File [#8](https://github.com/armada45-pixel/envstruct/issues/8)
+* Put to OS [#5](https://github.com/armada45-pixel/envstruct/issues/5)
+* Over Ride OS [#6](https://github.com/armada45-pixel/envstruct/issues/6)
+
+1.0.7
+* Add Custom Parser function [#9](https://github.com/armada45-pixel/envstruct/issues/9)
+* Fix bug : If open only "Put to os" And "Read all" will not working. [#26](https://github.com/armada45-pixel/envstruct/issues/26)
+* Fix bug : If have any error in process prepare Variable Pointer Data won't set. [#27](https://github.com/armada45-pixel/envstruct/issues/27)

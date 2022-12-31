@@ -1,4 +1,4 @@
-// version 1.0.6
+// version 1.0.7
 package envstruct
 
 import (
@@ -6,6 +6,8 @@ import (
 	"os"
 	"reflect"
 )
+
+type TypeCustomParserFunc func()
 
 type Options struct {
 	// Type : Variable Pointer
@@ -34,6 +36,9 @@ type Options struct {
 
 	// if true = if have os.env and env file will choose os.env
 	OsFirst bool // default false
+
+	// Custom parser function for custom type
+	CustomType map[reflect.Type]TypeDefaultBy
 }
 
 func Setup(optA ...Options) (err []error) {
@@ -42,11 +47,25 @@ func Setup(optA ...Options) (err []error) {
 
 	fileName := opt.FileName
 	var varProp = typeVarProp{}
-	var errCheckVar []error
+	var ref reflect.Value
+	var errCheckVarWrongType error
+	var allParserFunc = make(map[reflect.Type]TypeDefaultBy)
 
 	if opt.VarPtr != nil {
-		varProp, errCheckVar = prepareVar(opt.VarPtr)
-		err = append(err, errCheckVar...)
+		ref, errCheckVarWrongType = checkVarType(opt.VarPtr)
+		if errCheckVarWrongType != nil {
+			err = append(err, errCheckVarWrongType)
+		} else {
+			var errCheckVar []error
+			allParserFunc = DefaultByType
+			if len(opt.CustomType) != 0 {
+				for key, value := range opt.CustomType {
+					allParserFunc[key] = value
+				}
+			}
+			varProp, errCheckVar = prepareVar(opt.VarPtr, ref, allParserFunc)
+			err = append(err, errCheckVar...)
+		}
 	}
 
 	var envMap map[string]string
@@ -58,24 +77,24 @@ func Setup(optA ...Options) (err []error) {
 			defer file.Close()
 			var errParser []error
 			varProp, envMap, errParser = parserFile(file, opt, parserFileOption{
-				varProp: varProp,
-				envMap:  make(map[string]string),
+				varProp:       varProp,
+				allParserFunc: allParserFunc,
 			})
 			err = append(err, errParser...)
 		}
 	}
 
-	// if opt.ReadOS {
-	var errParser []error
-	varProp, errParser = parserOSEnv(parserOSOption{
-		varProp: varProp,
-		opt:     opt,
-		envMap:  envMap,
-	})
-	err = append(err, errParser...)
-	// }
+	if opt.ReadOS || opt.ReadAll || opt.PutToOs || opt.OsFirst {
+		var errParser []error
+		varProp, errParser = parserOSEnv(parserOSOption{
+			varProp: varProp,
+			opt:     opt,
+			envMap:  envMap,
+		})
+		err = append(err, errParser...)
+	}
 
-	if len(errCheckVar) == 0 {
+	if opt.VarPtr != nil && errCheckVarWrongType == nil {
 		if errSet := setVar(varProp); len(errSet) != 0 {
 			err = append(err, errSet...)
 		}
@@ -90,20 +109,21 @@ func setVar(newVarProp typeVarProp) (err []error) {
 	for i := 0; i < refType.NumField(); i++ {
 		newProp := newVarProp.prop[i]
 		refField := ref.Field(i)
-		value := newProp.defaultValue
-		fieldee := refField
-		if newProp.didRead {
-			refTypeField := newProp.refTypeField
-			typee := refTypeField.Type
-			if typee.Kind() == reflect.Ptr {
-				typee = typee.Elem()
-				fieldee = refField.Elem()
+		if newProp.defaultIsSet || newProp.didRead {
+			value := newProp.defaultValue
+			fieldee := refField
+			if newProp.didRead {
+				refTypeField := newProp.refTypeField
+				typee := refTypeField.Type
+				if typee.Kind() == reflect.Ptr {
+					typee = typee.Elem()
+					fieldee = refField.Elem()
+				}
+				value = newProp.readValue
 			}
-			value = newProp.readValue
-		}
-		refValue := reflect.ValueOf(value)
-		fieldee.Set(refValue)
-		if !newProp.didRead && newProp.required && refValue.IsZero() {
+			refValue := reflect.ValueOf(value)
+			fieldee.Set(refValue)
+		} else if newProp.required && (refField.IsZero() && reflect.Bool != refField.Kind()) {
 			err = append(err, errors.New("Field "+refField.Type().Name()+" Required is True, But can't get any value."))
 		}
 	}
