@@ -23,6 +23,7 @@ type varFieldProp struct {
 	didRead      bool
 	readValue    any
 	refTypeField reflect.StructField
+	typeProp     reflect.Type
 }
 
 func checkOptions(optArray []Options) Options {
@@ -48,21 +49,25 @@ func checkOptions(optArray []Options) Options {
 	return opt
 }
 
-func prepareVar(VarPtr interface{}) (ls typeVarProp, err []error) {
+func checkVarType(VarPtr interface{}) (reflect.Value, error) {
+	ptrRef := reflect.ValueOf(VarPtr)
+	if ptrRef.Kind() != reflect.Ptr {
+		return reflect.ValueOf(nil), ErrNotAStructPtr
+	}
+	ref := ptrRef.Elem()
+	if ref.Kind() != reflect.Struct {
+		return reflect.ValueOf(nil), ErrNotAStructPtr
+	}
+	return ref, nil
+}
+
+func prepareVar(VarPtr interface{}, ref reflect.Value) (ls typeVarProp, err []error) {
 
 	ls = typeVarProp{
 		check:   false,
 		prop:    make(map[int]varFieldProp),
 		OSname:  make(map[string]int),
 		ENVname: make(map[string]int),
-	}
-	ptrRef := reflect.ValueOf(VarPtr)
-	if ptrRef.Kind() != reflect.Ptr {
-		return ls, []error{ErrNotAStructPtr}
-	}
-	ref := ptrRef.Elem()
-	if ref.Kind() != reflect.Struct {
-		return ls, []error{ErrNotAStructPtr}
 	}
 	refType := ref.Type()
 	ls.ref = ref
@@ -94,15 +99,15 @@ func prepareVar(VarPtr interface{}) (ls typeVarProp, err []error) {
 		var defaultValue any
 		var defaultValueField_i = ref.Field(i)
 		var defaultIsSet bool
-		typeVarKind := refField.Type.Kind()
-		if defaultValueField_i.IsZero() && (reflect.Bool != defaultValueField_i.Kind()) {
+		sometype := defaultValueField_i.Type()
+		if defaultValueField_i.IsZero() && (reflect.TypeOf(reflect.Bool) != sometype) {
 			defaultString := refField.Tag.Get("default")
 			if len(defaultString) != 0 {
-				parserFunc, foundFunc := defaultBuiltInParsers[typeVarKind]
-				if !foundFunc {
-					err = append(err, errors.New("Parser Function For Type "+typeVarKind.String()+" In Field "+refField.Name+""))
+				searchDefault, found := defaultByType[sometype]
+				if !found {
+					err = append(err, errors.New("Parser Function For Type "+sometype.String()+" In Field "+refField.Name+""))
 				} else {
-					parseValue, errParse := parserFunc(defaultString)
+					parseValue, errParse := searchDefault.ParserFunc(defaultString)
 					if errParse != nil {
 						err = append(err, errParse)
 					} else {
@@ -118,6 +123,7 @@ func prepareVar(VarPtr interface{}) (ls typeVarProp, err []error) {
 			defaultValue: defaultValue,
 			required:     required,
 			refTypeField: refField,
+			typeProp:     defaultValueField_i.Type(),
 		}
 	}
 	return

@@ -7,6 +7,8 @@ import (
 	"reflect"
 )
 
+type TypeCustomParserFunc func()
+
 type Options struct {
 	// Type : Variable Pointer
 	// Pointer Struct Variable to config key,type for read env file or os.env variable
@@ -34,6 +36,9 @@ type Options struct {
 
 	// if true = if have os.env and env file will choose os.env
 	OsFirst bool // default false
+
+	// Custom parser function for custom type
+	CustomParserFunc []TypeCustomParserFunc
 }
 
 func Setup(optA ...Options) (err []error) {
@@ -42,11 +47,18 @@ func Setup(optA ...Options) (err []error) {
 
 	fileName := opt.FileName
 	var varProp = typeVarProp{}
-	var errCheckVar []error
+	var ref reflect.Value
+	var errCheckVarWrongType error
 
 	if opt.VarPtr != nil {
-		varProp, errCheckVar = prepareVar(opt.VarPtr)
-		err = append(err, errCheckVar...)
+		ref, errCheckVarWrongType = checkVarType(opt.VarPtr)
+		if errCheckVarWrongType != nil {
+			err = append(err, errCheckVarWrongType)
+		} else {
+			var errCheckVar []error
+			varProp, errCheckVar = prepareVar(opt.VarPtr, ref)
+			err = append(err, errCheckVar...)
+		}
 	}
 
 	var envMap map[string]string
@@ -59,23 +71,22 @@ func Setup(optA ...Options) (err []error) {
 			var errParser []error
 			varProp, envMap, errParser = parserFile(file, opt, parserFileOption{
 				varProp: varProp,
-				envMap:  make(map[string]string),
 			})
 			err = append(err, errParser...)
 		}
 	}
 
-	// if opt.ReadOS {
-	var errParser []error
-	varProp, errParser = parserOSEnv(parserOSOption{
-		varProp: varProp,
-		opt:     opt,
-		envMap:  envMap,
-	})
-	err = append(err, errParser...)
-	// }
+	if opt.ReadOS || opt.ReadAll || opt.PutToOs || opt.OsFirst {
+		var errParser []error
+		varProp, errParser = parserOSEnv(parserOSOption{
+			varProp: varProp,
+			opt:     opt,
+			envMap:  envMap,
+		})
+		err = append(err, errParser...)
+	}
 
-	if len(errCheckVar) == 0 {
+	if opt.VarPtr != nil && errCheckVarWrongType == nil {
 		if errSet := setVar(varProp); len(errSet) != 0 {
 			err = append(err, errSet...)
 		}

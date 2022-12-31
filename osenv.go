@@ -28,7 +28,7 @@ func parserOSEnv(opts ...parserOSOption) (varProp typeVarProp, err []error) {
 			if opt.ReadOS {
 				prop := varProp.prop[keyProp]
 				typeVar := prop.refTypeField
-				newValue, errParserData := parserData(varProp, typeVar, keyProp, value)
+				newValue, errParserData := parserData(prop.typeProp, typeVar, value)
 				if len(errParserData) != 0 {
 					err = append(err, errParserData...)
 				} else {
@@ -37,6 +37,7 @@ func parserOSEnv(opts ...parserOSOption) (varProp typeVarProp, err []error) {
 							defaultIsSet: prop.defaultIsSet,
 							defaultValue: prop.defaultValue,
 							required:     prop.required,
+							typeProp:     prop.typeProp,
 
 							didRead:      true,
 							readValue:    newValue,

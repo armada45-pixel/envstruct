@@ -11,12 +11,11 @@ import (
 
 type parserFileOption struct {
 	varProp typeVarProp
-	envMap  map[string]string
 }
 
 func parserFile(file io.Reader, opt Options, opts ...parserFileOption) (varProp typeVarProp, envMap map[string]string, err []error) {
 	varProp = opts[0].varProp
-	envMap = opts[0].envMap
+	envMap = make(map[string]string)
 
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
@@ -37,7 +36,7 @@ func parserFile(file io.Reader, opt Options, opts ...parserFileOption) (varProp 
 				if found {
 					prop := varProp.prop[keyProp]
 					typeVar := prop.refTypeField
-					newValue, errParserData := parserData(varProp, typeVar, keyProp, value)
+					newValue, errParserData := parserData(prop.typeProp, typeVar, value)
 					if len(errParserData) != 0 {
 						err = append(err, errParserData...)
 					} else {
@@ -45,6 +44,7 @@ func parserFile(file io.Reader, opt Options, opts ...parserFileOption) (varProp 
 							defaultIsSet: prop.defaultIsSet,
 							defaultValue: prop.defaultValue,
 							required:     prop.required,
+							typeProp:     prop.typeProp,
 
 							didRead:      true,
 							readValue:    newValue,
