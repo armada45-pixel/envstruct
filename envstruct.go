@@ -38,7 +38,7 @@ type Options struct {
 	OsFirst bool // default false
 
 	// Custom parser function for custom type
-	CustomParserFunc map[reflect.Type]TypeDefaultBy
+	CustomType map[reflect.Type]TypeDefaultBy
 }
 
 func Setup(optA ...Options) (err []error) {
@@ -58,8 +58,8 @@ func Setup(optA ...Options) (err []error) {
 		} else {
 			var errCheckVar []error
 			allParserFunc = DefaultByType
-			if len(opt.CustomParserFunc) != 0 {
-				for key, value := range opt.CustomParserFunc {
+			if len(opt.CustomType) != 0 {
+				for key, value := range opt.CustomType {
 					allParserFunc[key] = value
 				}
 			}
@@ -77,7 +77,8 @@ func Setup(optA ...Options) (err []error) {
 			defer file.Close()
 			var errParser []error
 			varProp, envMap, errParser = parserFile(file, opt, parserFileOption{
-				varProp: varProp,
+				varProp:       varProp,
+				allParserFunc: allParserFunc,
 			})
 			err = append(err, errParser...)
 		}
