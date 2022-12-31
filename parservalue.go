@@ -5,17 +5,16 @@ import (
 	"reflect"
 )
 
-func parserData(varProp typeVarProp, typeVar reflect.StructField, keyProp int, value string) (newValue any, err []error) {
+func parserData(typeKind reflect.Type, typeVar reflect.StructField, value string, allParserFunc map[reflect.Type]TypeDefaultBy) (newValue any, err []error) {
 
 	typeVarKind := typeVar.Type.Kind()
-	parserFunc, foundFunc := defaultBuiltInParsers[typeVarKind]
-	if !foundFunc {
+	searchDefault, found := allParserFunc[typeKind]
+	if !found {
 		err = append(err, errors.New("Parser Function For Type "+typeVarKind.String()+" In Field "+typeVar.Name+""))
 	} else {
-		parseValue, errParse := parserFunc(value)
+		parseValue, errParse := searchDefault.ParserFunc(value)
 		if errParse != nil {
 			err = append(err, errParse)
-			newValue = varProp.prop[keyProp].defaultValue
 		} else {
 			newValue = parseValue
 		}

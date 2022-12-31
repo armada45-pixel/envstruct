@@ -2,13 +2,15 @@ package envstruct
 
 import (
 	"os"
+	"reflect"
 	"strings"
 )
 
 type parserOSOption struct {
-	varProp typeVarProp
-	envMap  map[string]string
-	opt     Options
+	varProp       typeVarProp
+	envMap        map[string]string
+	opt           Options
+	allParserFunc map[reflect.Kind]TypeDefaultBy
 }
 
 func parserOSEnv(opts ...parserOSOption) (varProp typeVarProp, err []error) {
@@ -28,26 +30,27 @@ func parserOSEnv(opts ...parserOSOption) (varProp typeVarProp, err []error) {
 			if opt.ReadOS {
 				prop := varProp.prop[keyProp]
 				typeVar := prop.refTypeField
-				newValue, errParserData := parserData(varProp, typeVar, keyProp, value)
+				newValue, errParserData := parserData(prop.typeProp, typeVar, value, opt.CustomType)
 				if len(errParserData) != 0 {
 					err = append(err, errParserData...)
-				}
-				if !prop.didRead || opt.OsFirst {
-					varProp.prop[keyProp] = varFieldProp{
-						defaultValue: prop.defaultValue,
-						required:     prop.required,
+				} else {
+					if !prop.didRead || opt.OsFirst {
+						varProp.prop[keyProp] = varFieldProp{
+							defaultIsSet: prop.defaultIsSet,
+							defaultValue: prop.defaultValue,
+							required:     prop.required,
+							typeProp:     prop.typeProp,
 
-						didRead:      true,
-						readValue:    newValue,
-						refTypeField: typeVar,
+							didRead:      true,
+							readValue:    newValue,
+							refTypeField: typeVar,
+						}
 					}
 				}
 			}
-			// if foundEnv && opt.OverRide {
-			// 	os.Setenv(key, fileValue)
-			// }
 		} else if foundEnv {
 			os.Setenv(key, fileValue)
+			delete(envMap, key)
 		}
 	}
 	return
