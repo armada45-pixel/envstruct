@@ -49,10 +49,16 @@ func parserOSEnv(opts ...parserOSOption) (varProp typeVarProp, err []error) {
 					}
 				}
 			}
+			if foundEnv {
+				delete(envMap, key)
+			}
 		} else if foundEnv {
 			os.Setenv(key, fileValue)
 			delete(envMap, key)
 		}
+	}
+	for k, v := range envMap {
+		os.Setenv(k, v)
 	}
 	return
 }
