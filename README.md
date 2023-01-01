@@ -21,8 +21,8 @@ import (
 )
 
 type env struct {
-	Port uint16 `env:"PORT" os:"PORT" required:"true" default:"1234"`
-	Mode string `env:"MODE" os:"MODE" required:"false" default:"testDefalut"`
+  Port uint16 `env:"PORT" os:"PORT" required:"true" default:"1234"`
+  Mode modeE `env:"MODE" os:"MODE" required:"false" default:"true"`
 }
 ```
 ## Tag
@@ -35,10 +35,10 @@ func main() {
 ```
 ## Secoundary Default Value
 ```go
-	cfg := env{
-		Port: 8080, // Default Value is 8080
-		// Mode: "Development", // Disable Default Value
-	}
+  cfg := env{
+    Port: 8080, // Default Value is 8080
+    // Mode: "Development", // Disable Default Value
+  }
 ```
 ## Options
 For now you can use only 2 option
@@ -53,64 +53,63 @@ For now you can use only 2 option
 * **OsFirst** If have os.env and env file will choose os.env.
 * **CustomType** Map for write custom default value and parser function.
 ```go
-	opt := envstruct.Options{
-		VarPtr:   &cfg,
-		FileName: ".env.local", // can remove this for use default name
-		IgnoreFile: false,
-		ReadOS: true,
-		ReadAll: true,
-		OsFirst: false,
-		PutToOs: true,
-		OverRide: true,
-		OsFirst: true,
-		CustomType: map[reflect.Type]TypeDefaultBy{
-			reflect.TypeOf(Pro): {
-				ParserFunc: func(v string) (interface{}, error) {
-					searchDefault, _ := envstruct.DefaultByType[reflect.TypeOf(false)]
-					value, _ := searchDefault.ParserFunc(v)
-					if value == true {
-						return Pro, nil
-					}
-					return Dev, nil
-				},
-				ValueDefault: modeE(false),
-			},
-		},
-	}
+  opt := envstruct.Options{
+    VarPtr:   &cfg,
+    FileName: ".env.local", // can remove this for use default name
+    IgnoreFile: false,
+    ReadOS: true,
+    ReadAll: true,
+    OsFirst: false,
+    PutToOs: true,
+    OverRide: true,
+    OsFirst: true,
+    CustomType: map[reflect.Type]TypeDefaultBy{
+      reflect.TypeOf(Pro): {
+        ParserFunc: func(v string) (interface{}, error) {
+          searchDefault, _ := envstruct.DefaultByType[reflect.TypeOf(false)]
+          value, _ := searchDefault.ParserFunc(v)
+          if value == true {
+            return Pro, nil
+          }
+          return Dev, nil
+        },
+        ValueDefault: modeE(false),
+      },
+    },
+  }
 
-	type modeE bool
+  type modeE bool
 
-	const (
-		Pro modeE = false
-		Dev modeE = true
-	)
+  const (
+    Pro modeE = false
+    Dev modeE = true
+  )
 
-	func (m modeE) String() string {
-		if !m {
-			return "production"
-		}
-		return "development"
-	}
+  func (m modeE) String() string {
+    if !m {
+      return "production"
+    }
+    return "development"
+  }
 
-	func (m modeE) Bool() bool {
-		return bool(m)
-	}
+  func (m modeE) Bool() bool {
+    return bool(m)
+  }
 ```
 ## Return
 Return array of error.
 ```go
-	if err := envstruct.Setup(opt); len(err) != 0 {
-		fmt.Println(err)
-	}
+  if err := envstruct.Setup(opt); len(err) != 0 {
+    fmt.Println(err)
+  }
 ```
 ## Use Value
 All value from your env file in here now.
 ```go
-	fmt.Println(cfg)
-	fmt.Println(cfg.Port)
-	fmt.Println(cfg.Mode)
+  fmt.Println(cfg)
+  fmt.Println(cfg.Port)
+  fmt.Println(cfg.Mode)
 }
-
 ```
 
 # Change Log
